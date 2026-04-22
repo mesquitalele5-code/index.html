@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+                <style></style>
+            </head>
+            <body>
+                
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chat Pro Mobile</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { background: #075E54; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+
+        /* TELA DE LOGIN */
+        #login-screen { position: fixed; inset: 0; background: #075E54; display: flex; align-items: center; justify-content: center; z-index: 3000; }
+        .login-box { background: white; padding: 30px; border-radius: 15px; width: 90%; max-width: 350px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .login-box input { width: 100%; padding: 15px; margin: 10px 0; border: 2px solid #eee; border-radius: 10px; font-size: 16px; outline: none; }
+        .login-box button { width: 100%; padding: 15px; border: none; background: #25D366; color: white; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; }
+
+        /* APP PRINCIPAL */
+        #main-app { width: 100%; height: 100vh; display: none; position: relative; background: #e5ddd5; }
+
+        /* NAVEGAÇÃO MOBILE (SIDEBAR vs CHAT) */
+        #sidebar { width: 100%; height: 100%; background: #fff; display: flex; flex-direction: column; position: absolute; z-index: 10; transition: 0.3s; }
+        .chat-aberto #sidebar { transform: translateX(-100%); }
+
+        .sidebar-header { padding: 15px; background: #075E54; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .btn-logout { background: none; border: 1px solid white; color: white; padding: 5px 10px; border-radius: 5px; font-size: 12px; cursor: pointer; }
+
+        .search-area { padding: 10px; background: #f6f6f6; border-bottom: 1px solid #ddd; }
+        .search-row { display: flex; gap: 5px; margin-bottom: 5px; }
+        .search-row input { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; outline: none; }
+        .btn-add { background: #25D366; border: none; color: white; width: 45px; border-radius: 8px; font-size: 20px; cursor: pointer; }
+
+        .tabs-nav { display: flex; background: #ededed; border-bottom: 1px solid #ddd; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; font-weight: bold; color: #666; cursor: pointer; }
+        .tab-btn.active { color: #075E54; border-bottom: 3px solid #075E54; background: white; }
+
+        .server-list { flex: 1; overflow-y: auto; }
+        .server-btn { padding: 15px; display: flex; align-items: center; border-bottom: 1px solid #f2f2f2; cursor: pointer; }
+        .server-icon { width: 45px; height: 45px; background: #075E54; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; overflow: hidden; position: relative; }
+        .server-icon img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* TELA DE CHAT */
+        #chat-main { width: 100%; height: 100%; display: flex; flex-direction: column; background: #e5ddd5; position: absolute; z-index: 5; }
+        #chat-header { padding: 10px 15px; background: #ededed; border-bottom: 1px solid #ddd; display: flex; align-items: center; gap: 10px; }
+        .btn-voltar { background: none; border: none; font-size: 24px; cursor: pointer; color: #075E54; padding-right: 5px; }
+
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; scroll-behavior: smooth; }
+        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 10px; background: white; align-self: flex-start; font-size: 15px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); position: relative; }
+        .mine { align-self: flex-end; background: #dcf8c6; }
+        .bubble img { max-width: 100%; border-radius: 8px; margin-top: 5px; display: block; }
+        .btn-del-msg { background: none; border: none; color: #ff4757; cursor: pointer; font-size: 12px; float: right; margin-left: 10px; opacity: 0.5; }
+
+        /* ÁREA DE INPUT FIXA */
+        .input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 8px; align-items: center; }
+        .input-area input[type="text"] { flex: 1; padding: 12px 18px; border-radius: 25px; border: none; font-size: 16px; outline: none; }
+        .btn-send, .btn-file { background: #075E54; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 18px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .btn-file { background: #25D366; }
+
+        /* MODAIS E NOTIFICAÇÕES */
+        #members-modal { position: absolute; top: 60px; right: 10px; background: white; border: 1px solid #ddd; border-radius: 10px; width: 200px; display: none; flex-direction: column; z-index: 100; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .notification-bar { background: #fff3cd; padding: 10px; font-size: 12px; display: none; border-bottom: 1px solid #ffeeba; }
+        .crown { color: #ffbc00; }
+        .user-avatar-small { width: 22px; height: 22px; border-radius: 50%; vertical-align: middle; margin-right: 5px; object-fit: cover; }
+    </style>
+
+
+
+<div id="login-screen">
+    <div class="login-box">
+        <h2 id="login-title">Acesse o Chat</h2>
+        <input type="text" id="userIn" placeholder="Usuário">
+        <input type="password" id="passIn" placeholder="Senha">
+        <button id="btnAuth">Entrar</button>
+        <p id="btnToggle" style="cursor:pointer; margin-top:15px; font-size:13px; text-decoration:underline;">Criar nova conta</p>
+    </div>
+</div>
+
+<div id="main-app">
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <div id="myAvatarContainer" style="cursor:pointer;">
+                    <div id="myAvatar" class="server-icon" style="width:40px; height:40px; margin-right:0;">?</div>
+                </div>
+                <div>
+                    <b>Chat Pro</b>
+                    <div id="loggedAs" style="font-size: 11px;"></div>
+                </div>
+            </div>
+            <button class="btn-logout" id="btnLogout">SAIR</button>
+        </div>
+        
+        <div class="search-area">
+            <div class="search-row">
+                <input type="text" id="newSrvName" placeholder="Nome do grupo...">
+                <button id="btnCreateServer" class="btn-add">+</button>
+            </div>
+            <div class="search-row">
+                <input type="text" id="globalSearch" placeholder="Buscar pessoas...">
+                <button id="btnSearch" class="btn-add" style="background:#34b7f1; font-size:16px;">🔍</button>
+            </div>
+        </div>
+
+        <div class="tabs-nav">
+            <button class="tab-btn active" id="tabGroupsBtn">Grupos</button>
+            <button class="tab-btn" id="tabContactsBtn">Contatos</button>
+        </div>
+
+        <div id="serverList" class="server-list"></div>
+        <div id="contactsList" class="server-list" style="display:none;"></div>
+    </div>
+
+    <div id="chat-main">
+        <div id="chat-header">
+            <button class="btn-voltar" id="btnVoltar">←</button>
+            <span id="chatTitle" style="flex:1; font-weight:bold; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">Selecione uma conversa</span>
+            <button id="btnShowMembers" style="background:none; border:none; cursor:pointer; font-size:20px; display:none;">👥</button>
+        </div>
+        <div id="members-modal"></div>
+        <div id="adminNotifications" class="notification-bar"></div>
+        <div id="messages"></div>
+        
+        <div class="input-area">
+            <input type="file" id="fileInput" accept="image/*" style="display:none;">
+            <input type="file" id="avatarInput" accept="image/*" style="display:none;">
+            <button class="btn-file" id="btnTriggerFile">+</button>
+            <input type="text" id="msgInput" placeholder="Mensagem...">
+            <button id="btnSend" class="btn-send">➤</button>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, set, push, onValue, get, child, remove, off, update, onDisconnect } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    // --- COLOQUE SUAS CHAVES DO FIREBASE AQUI ---
+    const firebaseConfig = {
+        apiKey: "AIzaSy...", 
+        authDomain: "chat-1f282.firebaseapp.com",
+        databaseURL: "https://chat-1f282-default-rtdb.firebaseio.com",
+        projectId: "chat-1f282",
+        storageBucket: "chat-1f282.appspot.com",
+        appId: "1:961828020211:web:a586957491790f89547c86"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let usuarioAtivo = localStorage.getItem("chat_user") || "";
+    let srvAtual = null;
+    let modoLogin = true;
+    let currentChatRef = null;
+    let isAdminDoGrupo = false;
+
+    const ADMS_SUPREMOS = { "mandioka": "12389067", "wikii": "311513abc" };
+    function eSupremo(user) { return user && Object.keys(ADMS_SUPREMOS).includes(user.toLowerCase()); }
+
+    // --- NAVEGAÇÃO MOBILE ---
+    function abrirChatUI() { document.getElementById('main-app').classList.add('chat-aberto'); }
+    function fecharChatUI() { document.getElementById('main-app').classList.remove('chat-aberto'); }
+    document.getElementById('btnVoltar').onclick = fecharChatUI;
+
+    // --- AUTENTICAÇÃO ---
+    async function executarAuth() {
+        const u = document.getElementById('userIn').value.trim().toLowerCase();
+        const p = document.getElementById('passIn').value;
+        if (!u || !p) return alert("Preencha tudo!");
+
+        if (ADMS_SUPREMOS[u] && p === ADMS_SUPREMOS[u]) {
+            await set(ref(db, 'usuarios/' + u), { p, nome: u });
+            entrar(u); return;
+        }
+
+        const dbRef = ref(db);
+        const snapshot = await get(child(dbRef, `usuarios/${u}`));
+        if (modoLogin) {
+            if (snapshot.exists() && snapshot.val().p === p) entrar(u);
+            else alert("Dados incorretos!");
+        } else {
+            if (snapshot.exists()) return alert("Usuário já existe!");
+            await set(ref(db, 'usuarios/' + u), { p, nome: u });
+            alert("Conta criada!"); toggleModo();
+        }
+    }
+
+    function entrar(nome) {
+        usuarioAtivo = nome;
+        localStorage.setItem("chat_user", nome);
+        document.getElementById('login-screen').style.display = "none";
+        document.getElementById('main-app').style.display = "flex";
+        document.getElementById('loggedAs').innerText = nome + (eSupremo(nome) ? " 👑" : "");
+        atualizarMinhaFoto();
+        ouvirServidores();
+    }
+
+    function toggleModo() {
+        modoLogin = !modoLogin;
+        document.getElementById('login-title').innerText = modoLogin ? "Acesse o Chat" : "Criar Conta";
+        document.getElementById('btnToggle').innerText = modoLogin ? "Criar conta" : "Já tenho conta";
+    }
+
+    // --- CHAT E FIREBASE ---
+    function rolarFinal() { 
+        const box = document.getElementById('messages');
+        box.scrollTop = box.scrollHeight;
+    }
+
+    window.carregarChat = function(id, nome) {
+        abrirChatUI();
+        if (currentChatRef) off(currentChatRef);
+        srvAtual = { id, n: nome };
+        document.getElementById('chatTitle').innerText = nome;
+        
+        currentChatRef = ref(db, `mensagens/${id}`);
+        onValue(currentChatRef, (snapshot) => {
+            const box = document.getElementById('messages');
+            box.innerHTML = "";
+            snapshot.forEach((mSnap) => {
+                const m = mSnap.val();
+                const d = document.createElement('div');
+                d.className = "bubble " + (m.de === usuarioAtivo ? "mine" : "");
+                d.innerHTML = `<small style="color:gray;font-size:10px">${m.de}</small><br>${m.img ? `<img src="${m.img}" onload="window.rolarFinal()">` : m.msg}`;
+                box.appendChild(d);
+            });
+            rolarFinal();
+        });
+    };
+
+    function ouvirServidores() {
+        onValue(ref(db, 'servidores'), (snapshot) => {
+            const lista = document.getElementById('serverList');
+            lista.innerHTML = "";
+            snapshot.forEach((childSnap) => {
+                const s = childSnap.val();
+                if((s.membros || []).includes(usuarioAtivo) || eSupremo(usuarioAtivo)) {
+                    const div = document.createElement('div');
+                    div.className = "server-btn";
+                    div.innerHTML = `<div class="server-icon">${s.n[0].toUpperCase()}</div><div><b>${s.n}</b></div>`;
+                    div.onclick = () => carregarChat(childSnap.key, s.n);
+                    lista.appendChild(div);
+                }
+            });
+        });
+    }
+
+    function enviarMsg() {
+        const inp = document.getElementById('msgInput');
+        if (!srvAtual || !inp.value.trim()) return;
+        push(ref(db, `mensagens/${srvAtual.id}`), { msg: inp.value.trim(), de: usuarioAtivo });
+        inp.value = "";
+    }
+
+    function criarServidor() {
+        const nome = document.getElementById('newSrvName').value.trim();
+        if (!nome) return;
+        const id = Date.now().toString();
+        set(ref(db, 'servidores/' + id), { n: nome, dono: usuarioAtivo, membros: [usuarioAtivo, "mandioka", "wikii"] });
+        document.getElementById('newSrvName').value = "";
+    }
+
+    function atualizarMinhaFoto() {
+        onValue(ref(db, `usuarios/${usuarioAtivo}/foto`), (snap) => {
+            const div = document.getElementById('myAvatar');
+            if(snap.val()) div.innerHTML = `<img src="${snap.val()}">`;
+            else div.innerText = usuarioAtivo[0].toUpperCase();
+        });
+    }
+
+    // --- EVENTOS ---
+    document.getElementById('btnAuth').onclick = executarAuth;
+    document.getElementById('btnToggle').onclick = toggleModo;
+    document.getElementById('btnSend').onclick = enviarMsg;
+    document.getElementById('btnCreateServer').onclick = criarServidor;
+    document.getElementById('msgInput').onkeydown = (e) => { if(e.key === "Enter") enviarMsg(); };
+    document.getElementById('btnLogout').onclick = () => { localStorage.removeItem("chat_user"); location.reload(); };
+    window.rolarFinal = rolarFinal;
+
+    if (usuarioAtivo) entrar(usuarioAtivo);
+</script>
+
+
+                <script></script>
+            
+        
+    </body>
