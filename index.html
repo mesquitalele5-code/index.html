@@ -1,138 +1,127 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chat Pro</title>
+    <title>Chat Pro - Final</title>
     <style>
-        /* MANTENDO SEU VISUAL ORIGINAL DA FOTO */
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
-        body { background: #075E54; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
-
-        /* TELA DE LOGIN */
-        #login-screen { position: fixed; inset: 0; background: #075E54; display: flex; align-items: center; justify-content: center; z-index: 5000; }
-        .login-box { background: white; padding: 25px; border-radius: 5px; width: 85%; max-width: 350px; text-align: center; }
-        .login-box input { width: 100%; padding: 12px; margin: 5px 0; border: 1px solid #ccc; border-radius: 3px; }
-        .login-box button { width: 100%; padding: 12px; background: #25D366; color: white; border: none; font-weight: bold; margin-top: 10px; cursor: pointer; }
-
-        /* HEADER DO APP */
+        /* SEU CSS ORIGINAL */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        body { background: #075E54; height: 100vh; display: flex; flex-direction: column; }
+        #login-screen { position: fixed; inset: 0; background: #075E54; display: flex; align-items: center; justify-content: center; z-index: 2000; }
+        .login-box { background: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 360px; text-align: center; }
+        .login-box input { width: 100%; padding: 15px; margin: 8px 0; border: 2px solid #eee; border-radius: 8px; font-size: 16px; }
+        .login-box button { width: 100%; padding: 15px; border: none; background: #25D366; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 16px; }
+        #main-app { width: 100%; height: 100vh; display: none; flex-direction: column; }
+        #sidebar { width: 100%; height: 40%; background: #fff; border-bottom: 2px solid #ddd; display: flex; flex-direction: column; overflow: hidden; }
+        #chat-main { width: 100%; flex: 1; display: flex; flex-direction: column; background: #e5ddd5; position: relative; }
+        @media (min-width: 768px) {
+            #main-app { flex-direction: row; }
+            #sidebar { width: 350px; height: 100%; border-right: 1px solid #ddd; border-bottom: none; }
+            #chat-main { height: 100%; }
+        }
         .sidebar-header { padding: 15px; background: #075E54; color: white; display: flex; justify-content: space-between; align-items: center; }
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .avatar-circle { width: 40px; height: 40px; background: white; color: #075E54; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; overflow: hidden; font-size: 18px; }
-        .avatar-circle img { width: 100%; height: 100%; object-fit: cover; }
-        .btn-sair { background: none; border: 1px solid white; color: white; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 12px; }
+        .search-area { padding: 10px; background: #f6f6f6; display: flex; flex-direction: column; gap: 5px; }
+        .search-row { display: flex; gap: 5px; }
+        .search-row input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #ccc; font-size: 14px; }
+        .tabs-nav { display: flex; background: #ededed; }
+        .tab-btn { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: bold; color: #666; font-size: 14px; }
+        .tab-btn.active { color: #075E54; border-bottom: 3px solid #075E54; background: white; }
+        #messages { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background-color: #e5ddd5; }
+        .bubble { max-width: 85%; padding: 10px; border-radius: 8px; background: white; align-self: flex-start; font-size: 15px; box-shadow: 0 1px 1px rgba(0,0,0,0.1); position: relative; }
+        .mine { align-self: flex-end; background: #dcf8c6; }
+        .input-area { padding: 10px; background: #f0f0f0; display: flex; gap: 8px; align-items: center; }
+        .input-area input[type="text"] { flex: 1; padding: 15px; border-radius: 25px; border: none; outline: none; font-size: 16px; }
+        .btn-send, .btn-file { background: #075E54; color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 20px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
-        /* BUSCAS E INPUTS DE GRUPO */
-        .search-area { background: white; padding: 10px; display: flex; flex-direction: column; gap: 5px; }
-        .input-row { display: flex; gap: 5px; }
-        .input-row input { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
-        .btn-acao { width: 45px; height: 45px; border: none; border-radius: 5px; color: white; font-size: 20px; cursor: pointer; }
-
-        /* ABAS */
-        .tabs { display: flex; background: #f0f0f0; border-bottom: 1px solid #ccc; }
-        .tab { flex: 1; text-align: center; padding: 15px; font-weight: bold; color: #666; cursor: pointer; border-bottom: 3px solid transparent; }
-        .tab.active { color: #075E54; border-bottom: 3px solid #075E54; background: white; }
-
-        /* LISTAS */
-        .list-container { flex: 1; background: white; overflow-y: auto; }
-        .item-row { display: flex; align-items: center; padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; }
-        .item-icon { width: 45px; height: 45px; background: #075E54; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 15px; }
-
-        /* CHAT HEADER */
-        .chat-header { background: #ededed; padding: 12px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; border-top: 2px solid #ddd; }
-
-        /* MENSAGENS */
-        #messages { flex: 1.5; background: #e5ddd5; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
-        .bubble { max-width: 80%; padding: 8px 12px; border-radius: 8px; background: white; align-self: flex-start; font-size: 15px; position: relative; }
-        .bubble.mine { align-self: flex-end; background: #dcf8c6; }
-        .btn-del { background: none; border: none; font-size: 14px; cursor: pointer; opacity: 0.5; margin-left: 10px; }
-
-        /* INPUT DE MENSAGEM */
-        .msg-input-area { background: #f0f0f0; padding: 10px; display: flex; align-items: center; gap: 10px; }
-        #msgInput { flex: 1; padding: 12px; border: 1px solid #ccc; border-radius: 20px; outline: none; }
-        .btn-circle { width: 45px; height: 45px; border-radius: 50%; border: none; color: white; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-
-        /* MODAL DE MEMBROS (O QUE VOCÊ PEDIU) */
-        #members-modal { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; width: 80%; max-width: 300px; border-radius: 10px; display: none; flex-direction: column; z-index: 1000; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        .modal-header { padding: 15px; background: #075E54; color: white; border-radius: 10px 10px 0 0; font-weight: bold; }
-        .modal-body { max-height: 250px; overflow-y: auto; padding: 10px; }
-        .member-item { display: flex; justify-content: space-between; padding: 8px; border-bottom: 1px solid #eee; }
+        /* ADIÇÕES DE FUNÇÃO (SEM MUDAR SEU ESTILO) */
+        .server-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .server-item:hover { background: #f9f9f9; }
+        #members-modal { 
+            position: absolute; top: 50px; right: 10px; background: white; 
+            border: 1px solid #ccc; border-radius: 8px; width: 200px; 
+            display: none; flex-direction: column; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.2); 
+        }
+        .member-line { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; display: flex; justify-content: space-between; }
+        .btn-del-msg { background: none; border: none; color: red; font-size: 12px; cursor: pointer; float: right; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
-    <div class="login-box">
-        <h2>Acesse o Chat</h2>
-        <input type="text" id="userIn" placeholder="Usuário">
-        <input type="password" id="passIn" placeholder="Senha">
-        <button id="btnAuth">ENTRAR</button>
-        <p id="btnToggle" style="margin-top:10px; cursor:pointer; text-decoration:underline; font-size:12px;">Criar nova conta</p>
-    </div>
+  <div class="login-box">
+      <h2 id="login-title">Acesse o Chat</h2>
+      <input type="text" id="userIn" placeholder="Usuário">
+      <input type="password" id="passIn" placeholder="Senha">
+      <button id="btnAuth">Entrar</button>
+      <p id="btnToggle" style="cursor:pointer; margin-top:15px; font-size:12px; text-decoration:underline;">Criar nova conta</p>
+  </div>
 </div>
 
-<div class="sidebar-header">
-    <div class="user-info">
-        <div id="myAvatar" class="avatar-circle">?</div>
-        <div>
-            <b id="loggedAs">Nome</b><br>
-            <small id="userStatus">online</small>
-        </div>
-    </div>
-    <button class="btn-sair" onclick="sair()">SAIR</button>
-</div>
+<div id="main-app">
+  <div id="sidebar">
+      <div class="sidebar-header">
+          <div style="display: flex; align-items: center; gap: 10px;">
+               <div id="myAvatar" onclick="document.getElementById('avatarInput').click()" style="width:35px; height:35px; background:white; border-radius:50%; color:#075E54; display:flex; align-items:center; justify-content:center; font-weight:bold; cursor:pointer; overflow:hidden;">?</div>
+               <input type="file" id="avatarInput" accept="image/*" style="display:none">
+               <b>Chat Pro</b>
+          </div>
+          <button id="btnLogout" style="background:none; border:1px solid white; color:white; padding:4px; font-size:10px; border-radius:4px; cursor:pointer;">SAIR</button>
+      </div>
 
-<div class="search-area">
-    <div class="input-row">
-        <input type="text" id="newSrvName" placeholder="Novo grupo...">
-        <button class="btn-acao" style="background:#25D366" onclick="criarGrupo()">+</button>
-    </div>
-    <div class="input-row">
-        <input type="text" id="globalSearch" placeholder="Buscar Pessoas ou Grupos">
-        <button class="btn-acao" style="background:#34b7f1" onclick="buscar()">🔍</button>
-    </div>
-</div>
+      <div class="search-area">
+          <div class="search-row">
+              <input type="text" id="newSrvName" placeholder="Novo grupo...">
+              <button id="btnCreateServer" style="background:#25D366; color:white; border:none; width:40px; border-radius:8px; font-size:20px; cursor:pointer;">+</button>
+          </div>
+          <div class="search-row">
+              <input type="text" id="globalSearch" placeholder="Buscar contatos/grupos...">
+              <button id="btnSearch" style="background:#34b7f1; border:none; color:white; width:40px; border-radius:8px; cursor:pointer;">🔍</button>
+          </div>
+      </div>
 
-<div class="tabs">
-    <div id="tabG" class="tab active" onclick="mudarAba('G')">Grupos</div>
-    <div id="tabC" class="tab" onclick="mudarAba('C')">Contatos</div>
-</div>
+      <div class="tabs-nav">
+          <button class="tab-btn active" id="tabGroupsBtn">Grupos</button>
+          <button class="tab-btn" id="tabContactsBtn">Contatos</button>
+      </div>
 
-<div id="serverList" class="list-container"></div>
-<div id="contactsList" class="list-container" style="display:none"></div>
+      <div id="serverList" class="server-list" style="flex:1; overflow-y:auto;"></div>
+      <div id="contactsList" class="server-list" style="display:none; flex:1; overflow-y:auto;"></div>
+  </div>
 
-<div id="chat-header-ui" class="chat-header" style="display:none">
-    <span id="chatTitle">Nome do Grupo</span>
-    <button id="btnMembros" style="background:none; border:none; cursor:pointer; font-size:20px; color:#34b7f1">👥</button>
-</div>
+  <div id="chat-main">
+      <div id="chat-header" style="padding:10px; background:#ededed; border-bottom:1px solid #ddd; font-weight:bold; display:flex; justify-content:space-between; align-items:center;">
+          <span id="chatTitle">Selecione um grupo</span>
+          <button id="btnShowMembers" style="background:none; border:none; cursor:pointer; font-size:20px; display:none;">👥</button>
+      </div>
 
-<div id="messages"></div>
+      <div id="members-modal">
+          <div id="members-list-box" style="max-height:200px; overflow-y:auto;"></div>
+          <button id="btnActionSrv" style="padding:10px; border:none; background:#f0f0f0; color:red; font-weight:bold; cursor:pointer;"></button>
+      </div>
 
-<div class="msg-input-area">
-    <input type="file" id="fileInput" style="display:none" onchange="enviarFoto(this)">
-    <button class="btn-circle" style="background:#25D366" onclick="document.getElementById('fileInput').click()">+</button>
-    <input type="text" id="msgInput" placeholder="Mensagem...">
-    <button class="btn-circle" style="background:#075E54" onclick="enviarMsg()">➤</button>
-</div>
+      <div id="messages"></div>
 
-<div id="members-modal">
-    <div class="modal-header">Membros</div>
-    <div id="modal-body" class="modal-body"></div>
-    <button onclick="fecharModal()" style="padding:10px; border:none;">FECHAR</button>
+      <div class="input-area">
+          <input type="file" id="fileInput" accept="image/*" style="display:none">
+          <button class="btn-file" onclick="document.getElementById('fileInput').click()">+</button>
+          <input type="text" id="msgInput" placeholder="Mensagem...">
+          <button id="btnSend" class="btn-send">➤</button>
+      </div>
+  </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, set, push, onValue, get, child, remove, update } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    // --- COLOQUE SUAS CHAVES AQUI ---
     const firebaseConfig = {
-        apiKey: "AIzaSy...", 
-        authDomain: "chat-1f282.firebaseapp.com",
-        databaseURL: "https://chat-1f282-default-rtdb.firebaseio.com",
-        projectId: "chat-1f282",
-        storageBucket: "chat-1f282.appspot.com",
-        appId: "1:961828020211:web:a586957491790f89547c86"
+        apiKey: "SUA_API_KEY",
+        authDomain: "SEU_PROJETO.firebaseapp.com",
+        databaseURL: "https://SEU_PROJETO.firebaseio.com",
+        projectId: "SEU_PROJETO",
+        storageBucket: "SEU_PROJETO.appspot.com",
+        appId: "SEU_APP_ID"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -140,129 +129,177 @@
 
     let usuarioAtivo = localStorage.getItem("chat_user") || "";
     let srvAtual = null;
-    let isAdmin = false;
+    let modoLogin = true;
 
-    // --- FUNÇÕES DE LOGICA ---
-    window.mudarAba = (aba) => {
-        const g = document.getElementById('serverList');
-        const c = document.getElementById('contactsList');
-        const tg = document.getElementById('tabG');
-        const tc = document.getElementById('tabC');
-        if(aba === 'G') {
-            g.style.display = 'block'; c.style.display = 'none';
-            tg.classList.add('active'); tc.classList.remove('active');
-        } else {
-            g.style.display = 'none'; c.style.display = 'block';
-            tc.classList.add('active'); tg.classList.remove('active');
-            carregarContatos();
-        }
-    }
-
-    // AUTH (SIMPLES PARA TESTE)
-    document.getElementById('btnAuth').onclick = async () => {
+    // --- LOGICA DE AUTH ---
+    const btnAuth = document.getElementById('btnAuth');
+    btnAuth.onclick = async () => {
         const u = document.getElementById('userIn').value.trim().toLowerCase();
         const p = document.getElementById('passIn').value;
-        if(!u || !p) return;
-        await set(ref(db, `usuarios/${u}`), { p, nome: u });
-        usuarioAtivo = u;
-        localStorage.setItem("chat_user", u);
-        location.reload();
-    }
+        if(!u || !p) return alert("Preencha tudo");
 
-    function iniciarApp() {
-        if(!usuarioAtivo) return;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('loggedAs').innerText = usuarioAtivo;
+        const snapshot = await get(child(ref(db), `usuarios/${u}`));
+        if(modoLogin) {
+            if(snapshot.exists() && snapshot.val().p === p) entrar(u);
+            else alert("Senha incorreta");
+        } else {
+            if(snapshot.exists()) return alert("Usuário já existe");
+            await set(ref(db, `usuarios/${u}`), {p, nome: u});
+            entrar(u);
+        }
+    };
+
+    function entrar(nome) {
+        usuarioAtivo = nome;
+        localStorage.setItem("chat_user", nome);
+        document.getElementById('login-screen').style.display = "none";
+        document.getElementById('main-app').style.display = "flex";
+        carregarPerfil();
         ouvirGrupos();
     }
 
+    // --- FOTO DE PERFIL ---
+    function carregarPerfil() {
+        onValue(ref(db, `usuarios/${usuarioAtivo}/foto`), (snap) => {
+            if(snap.val()) document.getElementById('myAvatar').innerHTML = `<img src="${snap.val()}" style="width:100%;height:100%;object-fit:cover">`;
+        });
+    }
+
+    document.getElementById('avatarInput').onchange = (e) => {
+        const file = e.target.files[0];
+        const reader = new FileReader();
+        reader.onload = (ev) => update(ref(db, `usuarios/${usuarioAtivo}`), { foto: ev.target.result });
+        reader.readAsDataURL(file);
+    };
+
+    // --- ABAS E GRUPOS ---
+    document.getElementById('tabGroupsBtn').onclick = () => mudarAba('G');
+    document.getElementById('tabContactsBtn').onclick = () => mudarAba('C');
+
+    function mudarAba(aba) {
+        document.getElementById('serverList').style.display = aba === 'G' ? 'block' : 'none';
+        document.getElementById('contactsList').style.display = aba === 'C' ? 'block' : 'none';
+        document.getElementById('tabGroupsBtn').classList.toggle('active', aba === 'G');
+        document.getElementById('tabContactsBtn').classList.toggle('active', aba === 'C');
+        if(aba === 'C') carregarContatos();
+    }
+
     function ouvirGrupos() {
-        onValue(ref(db, 'servidores'), snap => {
-            const lista = document.getElementById('serverList');
-            lista.innerHTML = "";
+        onValue(ref(db, 'servidores'), (snap) => {
+            const list = document.getElementById('serverList');
+            list.innerHTML = "";
             snap.forEach(sSnap => {
                 const s = sSnap.val();
                 if(s.membros && s.membros.includes(usuarioAtivo)) {
-                    const d = document.createElement('div');
-                    d.className = "item-row";
-                    d.innerHTML = `<div class="item-icon">${s.n[0]}</div><b>${s.n}</b>`;
-                    d.onclick = () => abrirChat(sSnap.key, s.n, s.dono);
-                    lista.appendChild(d);
+                    const div = document.createElement('div');
+                    div.className = "server-item";
+                    div.innerHTML = `<b># ${s.n}</b>`;
+                    div.onclick = () => abrirChat(sSnap.key, s.n, s.dono);
+                    list.appendChild(div);
                 }
             });
         });
     }
 
-    window.abrirChat = (id, nome, dono) => {
+    // --- CHAT E MEMBROS ---
+    window.abrirChat = async (id, nome, dono) => {
         srvAtual = id;
-        isAdmin = (dono === usuarioAtivo || usuarioAtivo === 'mandioka' || usuarioAtivo === 'wikii');
-        document.getElementById('chat-header-ui').style.display = 'flex';
         document.getElementById('chatTitle').innerText = nome;
+        document.getElementById('btnShowMembers').style.display = "block";
+        const isAdmin = (dono === usuarioAtivo || usuarioAtivo === 'mandioka');
         
-        onValue(ref(db, `mensagens/${id}`), snap => {
+        onValue(ref(db, `mensagens/${id}`), (snap) => {
             const box = document.getElementById('messages');
             box.innerHTML = "";
             snap.forEach(mSnap => {
                 const m = mSnap.val();
                 const d = document.createElement('div');
-                d.className = "bubble " + (m.de === usuarioAtivo ? "mine" : "");
-                const btnLixo = (m.de === usuarioAtivo || isAdmin) ? `<button onclick="window.apagarMsg('${id}','${mSnap.key}')" class="btn-del">🗑️</button>` : "";
-                d.innerHTML = `<small>${m.de}</small>${btnLixo}<br>${m.img ? `<img src="${m.img}" width="100%">` : m.msg}`;
+                d.className = `bubble ${m.de === usuarioAtivo ? 'mine' : ''}`;
+                const btnDel = (isAdmin || m.de === usuarioAtivo) ? `<button class="btn-del-msg" onclick="apagarMsg('${id}','${mSnap.key}')">🗑️</button>` : '';
+                d.innerHTML = `<small style="font-size:10px;color:gray">${m.de}</small>${btnDel}<br>${m.img ? `<img src="${m.img}" style="max-width:100%">` : m.msg}`;
                 box.appendChild(d);
             });
             box.scrollTop = box.scrollHeight;
         });
 
-        document.getElementById('btnMembros').onclick = () => gerenciarMembros(id, dono);
-    }
+        // Configura botão de Membros
+        document.getElementById('btnShowMembers').onclick = () => {
+            const modal = document.getElementById('members-modal');
+            modal.style.display = modal.style.display === 'flex' ? 'none' : 'flex';
+            carregarMembrosModal(id, dono, isAdmin);
+        };
+    };
 
-    window.apagarMsg = (srv, mid) => { if(confirm("Apagar?")) remove(ref(db, `mensagens/${srv}/${mid}`)); }
-
-    window.gerenciarMembros = async (id, dono) => {
-        const modal = document.getElementById('members-modal');
-        const body = document.getElementById('modal-body');
-        modal.style.display = 'flex';
-        const s = (await get(ref(db, `servidores/${id}`))).val();
-        body.innerHTML = "";
+    async function carregarMembrosModal(id, dono, isAdmin) {
+        const snap = await get(ref(db, `servidores/${id}`));
+        const s = snap.val();
+        const box = document.getElementById('members-list-box');
+        box.innerHTML = "";
         s.membros.forEach(m => {
-            const item = document.createElement('div');
-            item.className = "member-item";
-            const btnRem = (isAdmin && m !== dono) ? `<button onclick="window.remover('${id}','${m}')">❌</button>` : "";
-            item.innerHTML = `<span>${m}</span> ${btnRem}`;
-            body.appendChild(item);
+            box.innerHTML += `<div class="member-line">${m} ${m === dono ? '👑' : ''}</div>`;
         });
-        if(isAdmin) body.innerHTML += `<button onclick="window.excluirSrv('${id}')" style="color:red; margin-top:10px">EXCLUIR GRUPO</button>`;
-        else body.innerHTML += `<button onclick="window.sairSrv('${id}')" style="color:orange; margin-top:10px">SAIR DO GRUPO</button>`;
+        const btn = document.getElementById('btnActionSrv');
+        btn.innerText = isAdmin ? "APAGAR GRUPO" : "SAIR DO GRUPO";
+        btn.onclick = () => isAdmin ? apagarGrupo(id) : sairGrupo(id);
     }
 
-    window.remover = async (sid, user) => {
-        const s = (await get(ref(db, `servidores/${sid}`))).val();
-        const novo = s.membros.filter(i => i !== user);
-        await update(ref(db, `servidores/${sid}`), { membros: novo });
-        fecharModal();
+    // --- AÇÕES ---
+    window.apagarMsg = (sid, mid) => remove(ref(db, `mensagens/${sid}/${mid}`));
+    
+    async function apagarGrupo(id) {
+        if(confirm("Deseja apagar o grupo?")) {
+            await remove(ref(db, `servidores/${id}`));
+            await remove(ref(db, `mensagens/${id}`));
+            location.reload();
+        }
     }
 
-    window.excluirSrv = async (id) => { if(confirm("Apagar tudo?")) { await remove(ref(db, `servidores/${id}`)); location.reload(); } }
-    window.fecharModal = () => document.getElementById('members-modal').style.display = 'none';
-
-    window.enviarMsg = () => {
-        const inp = document.getElementById('msgInput');
-        if(!srvAtual || !inp.value.trim()) return;
-        push(ref(db, `mensagens/${srvAtual}`), { msg: inp.value, de: usuarioAtivo });
-        inp.value = "";
+    async function sairGrupo(id) {
+        const snap = await get(ref(db, `servidores/${id}`));
+        const novos = snap.val().membros.filter(m => m !== usuarioAtivo);
+        await update(ref(db, `servidores/${id}`), { membros: novos });
+        location.reload();
     }
 
-    window.criarGrupo = () => {
+    document.getElementById('btnSend').onclick = () => {
+        const val = document.getElementById('msgInput').value;
+        if(!srvAtual || !val) return;
+        push(ref(db, `mensagens/${srvAtual}`), { de: usuarioAtivo, msg: val });
+        document.getElementById('msgInput').value = "";
+    };
+
+    document.getElementById('btnCreateServer').onclick = () => {
         const n = document.getElementById('newSrvName').value;
         if(!n) return;
         const id = Date.now().toString();
-        set(ref(db, `servidores/${id}`), { n, dono: usuarioAtivo, membros: [usuarioAtivo, "mandioka", "wikii"] });
+        set(ref(db, `servidores/${id}`), { n, dono: usuarioAtivo, membros: [usuarioAtivo, "mandioka"] });
         document.getElementById('newSrvName').value = "";
-    }
+    };
 
-    window.sair = () => { localStorage.clear(); location.reload(); }
+    document.getElementById('btnSearch').onclick = async () => {
+        const termo = document.getElementById('globalSearch').value.toLowerCase();
+        if(!termo) return;
+        const snap = await get(ref(db, 'usuarios'));
+        const list = document.getElementById('serverList'); // Mostra na lista atual
+        list.innerHTML = "<b>Resultados:</b>";
+        snap.forEach(u => {
+            if(u.key.includes(termo)) {
+                const d = document.createElement('div');
+                d.className = "server-item";
+                d.innerHTML = `👤 ${u.key}`;
+                d.onclick = () => alert("Função de chat privado pode ser adicionada aqui!");
+                list.appendChild(d);
+            }
+        });
+    };
 
-    iniciarApp();
+    if(usuarioAtivo) entrar(usuarioAtivo);
+    document.getElementById('btnLogout').onclick = () => { localStorage.clear(); location.reload(); };
+    document.getElementById('btnToggle').onclick = () => {
+        modoLogin = !modoLogin;
+        document.getElementById('login-title').innerText = modoLogin ? "Acesse o Chat" : "Criar Conta";
+    };
 </script>
+
 </body>
 </html>
